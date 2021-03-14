@@ -1,0 +1,300 @@
+openapi: 3.0.3
+info:
+  title: TODO List API
+  version: 0.0.1
+  description: Simple API for TODO List project that is created as labs for some university course.
+  contact:
+    url: https://github.com/IP-87-Development-Tech-And-Methods-2021/example-todolist-specification.git
+servers:
+  - url: http://localhost:8080
+    description: TODO List running locally
+externalDocs:
+  description: GitHub project for the OpenAPI specification of TODO List API
+  url: https://github.com/IP-87-Development-Tech-And-Methods-2021/example-todolist-specification.git
+paths:
+  /users/signup:
+    post:
+      tags:
+        - users
+      operationId: signup
+      requestBody:
+        description:
+          User sign up. "Success" response means that user was created
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/signUpRequest'
+      responses:
+        '201':
+          description: New user was created
+        '400':
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signUpResponseError'
+
+  /users/signin:
+    post:
+      tags:
+        - users
+      operationId: signin
+      requestBody:
+        description:
+          User sign-in. "Success" response contains bearer token
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/signInRequest'
+      responses:
+        '200':
+          description: Response with bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signInResponseOk'
+        '400':
+          description: Malformed request/required params are missing
+
+
+  /tasks:
+    get:
+      tags:
+        - tasks
+      security:
+        - bearerAuth: [ ]
+      summary: List of tasks created by user
+      responses:
+        '200':
+          description: List of tasks created by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tasksListResponseOk'
+        '401':
+          description: User is not authorized
+    post:
+      tags:
+        - tasks
+      security:
+        - bearerAuth: [ ]
+      operationId: taskCreate
+      summary: Task creation operation. "Success" response contains created task data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/taskCreationRequest'
+      responses:
+        '201':
+          description: Task was successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskCreationResponseOk'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskCreationResponseErr'
+        '401':
+          description: User is not authorized
+
+  /tasks/{id}:
+    patch:
+      tags:
+        - tasks
+      security:
+        - bearerAuth: [ ]
+      summary: Modify task status
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Identifier of task
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/taskStatusModificationRequest'
+      responses:
+        '200':
+          description: Task status was updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskStatusModificationResponseOk'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskStatusModificationResponseErr'
+        '401':
+          description: User is not authorized
+        '404':
+           description: Task was not found among created by the user
+    delete:
+      tags:
+        - tasks
+      security:
+        - bearerAuth: [ ]
+      summary: Delete task
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Identifier of task
+      responses:
+        '204':
+          description: Task deleted
+        '401':
+          description: User is not authorized
+        '404':
+           description: Task was not found among created by the user
+
+
+components:
+  schemas:
+    signUpRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          description: email
+          example: "test@example.com"
+        password:
+          type: string
+          description: password
+          example: "very-strong-password"
+      required:
+        - email
+        - password
+    signUpResponseError:
+      type: object
+      properties:
+        reason_code:
+          type: integer
+          enum: [0, 1]
+          description: >
+            * 0 - Malformed request
+            * 1 - Email is already used
+        reason_text:
+          type: integer
+          description: human-interpretable error reason
+          example: "Cannot parse json"
+
+    signInRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: email
+          example: "test@example.com"
+        password:
+          type: string
+          description: password
+          example: "very-strong-password"
+      required:
+        - email
+        - password
+    signInResponseOk:
+      type: object
+      properties:
+        token:
+          type: string
+          description: UUID4 bearer token
+          example: "31e6dcae-e0ab-4808-b4d7-38c6c4768c66"
+
+    taskCreationRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          description: task description
+          example: "Write an OpenAPI spec"
+      required:
+        - description
+    taskCreationResponseOk: &taskObject
+      type: object
+      properties:
+        id:
+          type: integer
+          description: internal id of the task
+          example: 1
+        description:
+          type: string
+          description: task description
+          example: "Write an OpenAPI spec"
+        completed:
+          type: boolean
+          description: if the task is completed
+          example: false
+
+    taskCreationResponseErr:
+      type: object
+      properties:
+        reason_code:
+          type: integer
+          enum: [0, 1]
+          description: >
+            * 0 - Malformed request
+            * 2 - Description is blank
+        reason_text:
+          type: integer
+          description: human-interpretable error reason
+          example: "Cannot parse json"
+
+    taskStatusModificationRequest:
+      type: object
+      properties:
+        completed:
+          type: boolean
+          description: whether the task is completed
+          example: true
+      required:
+        - completed
+    taskStatusModificationResponseOk: *taskObject
+    taskStatusModificationResponseErr:
+      type: object
+      properties:
+        reason_code:
+          type: integer
+          enum: [0]
+          description: >
+            * 0 - Malformed request
+        reason_text:
+          type: integer
+          description: human-interpretable error reason
+          example: "Cannot parse json"
+
+    tasksListResponseOk:
+      type: object
+      properties:
+        tasks:
+          type: array
+          description: array of url data
+          items: *taskObject
+
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+tags:
+  - name: users
+    description: User-related part of the API
+  - name: tasks
+    description: Task-related part of the API
+
