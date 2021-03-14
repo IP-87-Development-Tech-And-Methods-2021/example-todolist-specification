@@ -7,7 +7,7 @@ info:
     url: https://github.com/IP-87-Development-Tech-And-Methods-2021/example-todolist-specification.git
 servers:
   - url: http://localhost:8080
-    description: TODO List running locally
+    description: TODO List application running locally
 externalDocs:
   description: GitHub project for the OpenAPI specification of TODO List API
   url: https://github.com/IP-87-Development-Tech-And-Methods-2021/example-todolist-specification.git
