@@ -8,6 +8,9 @@ project.
 A document regarding project specification can be found `here
 <https://docs.google.com/document/d/1-zxKKYPo1iRFA-LCbf-BF8CPcdKeKVSyrLGLLdXEdK0/edit?usp=sharing>`_.
 
+You can view the rendered OpenAPI specification at
+https://ip-87-development-tech-and-methods-2021.github.io/example-todolist-specification
+
 Tools
 =====
 
