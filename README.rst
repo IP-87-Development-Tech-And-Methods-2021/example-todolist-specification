@@ -15,9 +15,9 @@ Option #1
 ---------
 
 PyCharm IDE (`PyCharm EDU
-<https://www.jetbrains.com/edu-products/download/#section=pycharm-edu>`_) will
+<https://www.jetbrains.com/edu-products/download/#section=pycharm-edu>`_ will
 work) + `42Crunch OpenAPI (Swagger) Editor
-<https://plugins.jetbrains.com/plugin/14837-openapi-swagger-editor>`_) plugin.
+<https://plugins.jetbrains.com/plugin/14837-openapi-swagger-editor>`_ plugin.
 
 Option #2
 ---------
