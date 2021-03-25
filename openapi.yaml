@@ -1,18 +1,18 @@
 openapi: 3.0.3
 info:
-  title: TODO List API
-  version: 0.0.1
-  description: Simple API for TODO List project that is created as labs for some university course.
+  title: URL shortener API
+  version: 1.0.0
+  description: Simple API for URL shortener project that is created as labs for Modern Methods and Technologies of Software Development universisty course.
   contact:
-    url: https://github.com/IP-87-Development-Tech-And-Methods-2021/example-todolist-specification.git
+    url: https://github.com/IP-87-Development-Tech-And-Methods-2021/specification-url-shortener
 servers:
-  - url: http://localhost:8080
-    description: TODO List application running locally
+  - url: http://localhost:6543
+    description: URL shortener running locally
 externalDocs:
-  description: GitHub project for the OpenAPI specification of TODO List API
-  url: https://github.com/IP-87-Development-Tech-And-Methods-2021/example-todolist-specification.git
+  description: GitHub project for the OpenAPI specification of URL shortener API
+  url: https://github.com/IP-87-Development-Tech-And-Methods-2021/specification-url-shortener
 paths:
-  /users/signup:
+  /user/create:
     post:
       tags:
         - users
@@ -35,7 +35,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/signUpResponseError'
 
-  /users/signin:
+  /user/login:
     post:
       tags:
         - users
@@ -57,111 +57,110 @@ paths:
                 $ref: '#/components/schemas/signInResponseOk'
         '400':
           description: Malformed request/required params are missing
+        '404':
+          description: User with provided credentials not found
 
-
-  /tasks:
-    get:
-      tags:
-        - tasks
-      security:
-        - bearerAuth: [ ]
-      summary: List of tasks created by user
-      responses:
-        '200':
-          description: List of tasks created by user
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/tasksListResponseOk'
-        '401':
-          description: User is not authorized
+  /user/logout:
     post:
       tags:
-        - tasks
-      security:
-        - bearerAuth: [ ]
-      operationId: taskCreate
-      summary: Task creation operation. "Success" response contains created task data
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/taskCreationRequest'
-      responses:
-        '201':
-          description: Task was successfully created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/taskCreationResponseOk'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/taskCreationResponseErr'
-        '401':
-          description: User is not authorized
-
-  /tasks/{id}:
-    patch:
-      tags:
-        - tasks
-      security:
-        - bearerAuth: [ ]
-      summary: Modify task status
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-          description: Identifier of task
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/taskStatusModificationRequest'
-      responses:
-        '200':
-          description: Task status was updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/taskStatusModificationResponseOk'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/taskStatusModificationResponseErr'
-        '401':
-          description: User is not authorized
-        '404':
-           description: Task was not found among created by the user
-    delete:
-      tags:
-        - tasks
-      security:
-        - bearerAuth: [ ]
-      summary: Delete task
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-          description: Identifier of task
+        - users
+      operationId: signout
       responses:
         '204':
-          description: Task deleted
+          description: User is not authenticated anymore
+        '403':
+          description: User does not exist
+
+  /links/shorten:
+    post:
+      tags:
+        - links
+      security:
+        - bearerAuth: [ ]
+      operationId: urlsShorten
+      summary: Url shortening operation. "Success" response contains shorten version of given url
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/urlsShortenRequest'
+      responses:
+        '201':
+          description: Url was successfully shortened
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/urlsShortenResponseOk'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/urlsShortenResponseErr'
+        '401':
+          description: User is not authorized
+
+  /r/{alias}:
+    get:
+      summary: Redirect to url
+      parameters:
+        - in: path
+          name: alias
+          schema:
+            type: string
+          required: true
+          description: identifier of shortened url
+      responses:
+        '301':
+          description: User successfully redirected
+          headers:
+            Location:
+              schema:
+                type: string
+              description: url
+              required: true
+        '404':
+          description: no url corresponds to given alias
+
+  /links:
+    get:
+      tags:
+        - links
+      security:
+        - bearerAuth: [ ]
+      summary: List of urls created by user
+      responses:
+        '200':
+          description: List of urls created by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/urlsListResponseOk'
+        '401':
+          description: User is not authorized
+
+  /links/{alias}:
+    delete:
+      tags:
+        - links
+      security:
+        - bearerAuth: [ ]
+      summary: Delete shortened url
+      parameters:
+        - in: path
+          name: alias
+          schema:
+            type: string
+          required: true
+          description: Identifier of shortened url
+      responses:
+        '204':
+          description: Url deleted
         '401':
           description: User is not authorized
         '404':
-           description: Task was not found among created by the user
+           description: Alias was not found among created by the user
 
 
 components:
@@ -185,10 +184,10 @@ components:
       properties:
         reason_code:
           type: integer
-          enum: [0, 1]
+          enum: [0, 2]
           description: >
             * 0 - Malformed request
-            * 1 - Email is already used
+            * 2 - Email is already used
         reason_text:
           type: integer
           description: human-interpretable error reason
@@ -213,78 +212,66 @@ components:
       properties:
         token:
           type: string
-          description: UUID4 bearer token
+          description: bearer token
           example: "31e6dcae-e0ab-4808-b4d7-38c6c4768c66"
 
-    taskCreationRequest:
+    urlsShortenRequest:
       type: object
       properties:
-        description:
+        url:
           type: string
-          description: task description
-          example: "Write an OpenAPI spec"
+          description: url to shorten
+          example: "https://www.google.com.ua/"
+        alias:
+          type: string
+          description: desired identifier
+          example: "abcd"
       required:
-        - description
-    taskCreationResponseOk: &taskObject
+        - url
+    urlsShortenResponseOk:
       type: object
       properties:
-        id:
-          type: integer
-          description: internal id of the task
-          example: 1
-        description:
+        shortened_url:
           type: string
-          description: task description
-          example: "Write an OpenAPI spec"
-        completed:
-          type: boolean
-          description: if the task is completed
-          example: false
-
-    taskCreationResponseErr:
+          description: shortened url
+          example: "http://localhost:8080/r/abcdefghijk"
+    urlsShortenResponseErr:
       type: object
       properties:
         reason_code:
           type: integer
-          enum: [0, 1]
+          enum: [0, 1, 2, 3]
           description: >
             * 0 - Malformed request
-            * 2 - Description is blank
+            * 1 - Provided url is not valid http or https url (ftp for example)
+            * 2 - Desired alias is already taken
+            * 3 - Desired alias is not alphanumeric string
         reason_text:
           type: integer
           description: human-interpretable error reason
           example: "Cannot parse json"
 
-    taskStatusModificationRequest:
+    urlsListResponseOk:
       type: object
       properties:
-        completed:
-          type: boolean
-          description: whether the task is completed
-          example: true
-      required:
-        - completed
-    taskStatusModificationResponseOk: *taskObject
-    taskStatusModificationResponseErr:
-      type: object
-      properties:
-        reason_code:
-          type: integer
-          enum: [0]
-          description: >
-            * 0 - Malformed request
-        reason_text:
-          type: integer
-          description: human-interpretable error reason
-          example: "Cannot parse json"
-
-    tasksListResponseOk:
-      type: object
-      properties:
-        tasks:
+        urls:
           type: array
           description: array of url data
-          items: *taskObject
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                description: url
+                example: "https://www.google.com.ua/"
+              alias:
+                type: string
+                description: identifier
+                example: "abcd"
+              shortened_url:
+                type: string
+                description: shortened url
+                example: "http://localhost:8080/r/abcd"
 
 
   securitySchemes:
@@ -295,6 +282,5 @@ components:
 tags:
   - name: users
     description: User-related part of the API
-  - name: tasks
-    description: Task-related part of the API
-
+  - name: links
+    description: Url shortening part of the API
